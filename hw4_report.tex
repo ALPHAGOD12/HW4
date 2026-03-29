@@ -1,0 +1,248 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+\title{Assignment 4: CS 754, Advanced Image Processing\\
+\large Solutions to Questions 4 and 5}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+%======================================================================
+\section*{Question 4: LASSO Variant --- The Square-Root LASSO}
+%======================================================================
+
+\subsection*{4.1 Paper Details (2.5 points)}
+\begin{itemize}
+    \item \textbf{Title:} ``Square-Root Lasso: Pivotal Recovery of Sparse Signals via Conic Programming''
+    \item \textbf{Authors:} Alexandre Belloni, Victor Chernozhukov, Lihong Wang
+    \item \textbf{Venue:} \emph{Biometrika}, Volume 98, Issue 4
+    \item \textbf{Year:} 2011
+\end{itemize}
+
+\subsection*{4.2 Mathematical Formulation (2.5 points)}
+The standard LASSO solves
+\[
+\hat{\boldsymbol{\beta}}_{\text{LASSO}} = \arg\min_{\boldsymbol{\beta} \in \mathbb{R}^p}
+\frac{1}{2n}\|\boldsymbol{y} - \boldsymbol{X}\boldsymbol{\beta}\|_2^2 + \lambda \|\boldsymbol{\beta}\|_1.
+\]
+The \textbf{Square-Root LASSO} replaces the squared loss with its square root:
+\[
+\boxed{\hat{\boldsymbol{\beta}}_{\text{SR}} = \arg\min_{\boldsymbol{\beta} \in \mathbb{R}^p}
+\frac{1}{\sqrt{n}}\|\boldsymbol{y} - \boldsymbol{X}\boldsymbol{\beta}\|_2 + \lambda \|\boldsymbol{\beta}\|_1.}
+\]
+
+\paragraph{Notation and dimensions.}
+\begin{itemize}
+    \item $\boldsymbol{y} \in \mathbb{R}^n$: response vector ($n \times 1$).
+    \item $\boldsymbol{X} \in \mathbb{R}^{n \times p}$: design matrix ($n$ observations, $p$ features).
+    \item $\boldsymbol{\beta} \in \mathbb{R}^p$: coefficient vector ($p \times 1$).
+    \item $\lambda > 0$: regularization parameter (scalar).
+    \item $\|\cdot\|_2$: the Euclidean ($\ell_2$) norm.
+    \item $\|\cdot\|_1$: the $\ell_1$ norm $\sum_{j=1}^p |\beta_j|$.
+\end{itemize}
+
+The model is $\boldsymbol{y} = \boldsymbol{X}\boldsymbol{\beta}^* + \boldsymbol{\varepsilon}$, where
+$\boldsymbol{\varepsilon} \sim \mathcal{N}(\boldsymbol{0}, \sigma^2 \boldsymbol{I}_n)$ with \emph{unknown} $\sigma$.
+
+\subsection*{4.3 Key Theorem (5 points)}
+
+\begin{quote}
+\textbf{Theorem (Belloni, Chernozhukov, Wang 2011).}
+Suppose $\boldsymbol{y} = \boldsymbol{X}\boldsymbol{\beta}^* + \boldsymbol{\varepsilon}$ with $\boldsymbol{\varepsilon} \sim \mathcal{N}(\boldsymbol{0},\sigma^2\boldsymbol{I}_n)$.
+Let $s = \|\boldsymbol{\beta}^*\|_0$ be the sparsity of the true coefficient vector. Choose the regularization parameter as
+\[
+\lambda = c \sqrt{\frac{\log p}{n}},
+\]
+where $c>0$ is a universal constant that does \emph{not} depend on $\sigma$.
+Then, under a restricted eigenvalue condition on $\boldsymbol{X}$, the Square-Root LASSO estimator $\hat{\boldsymbol{\beta}}_{\text{SR}}$ satisfies
+\[
+\|\hat{\boldsymbol{\beta}}_{\text{SR}} - \boldsymbol{\beta}^*\|_2
+\;\leq\; C\,\sigma\,\sqrt{\frac{s\,\log p}{n}},
+\]
+with high probability (at least $1 - O(1/p)$), where $C$ is a constant depending on the restricted eigenvalue of $\boldsymbol{X}$.
+\end{quote}
+
+The critical property is that $\lambda$ is \textbf{pivotal}: it does not depend on the unknown noise level $\sigma$. This is in contrast to the standard LASSO, where the optimal $\lambda$ scales as $\sigma\sqrt{\log p/n}$ and thus requires knowledge or estimation of $\sigma$.
+
+\subsection*{4.4 Advantage over LASSO (10 points)}
+
+The central advantage of the Square-Root LASSO over the standard LASSO is its
+\textbf{pivotal} (self-normalizing) nature:
+
+\begin{enumerate}
+    \item \textbf{No need to know or estimate $\sigma$.}
+    In the standard LASSO, the theoretically optimal regularization parameter is
+    $\lambda_{\text{LASSO}} \propto \sigma\sqrt{\log p/n}$.
+    Since the noise level $\sigma$ is almost never known in practice, one must either
+    estimate it (which is itself a hard problem in the $p > n$ regime) or use
+    computationally expensive cross-validation. The Square-Root LASSO removes this
+    dependence entirely: $\lambda_{\text{SR}} \propto \sqrt{\log p/n}$, which depends only
+    on the known quantities $n$ and $p$.
+
+    \item \textbf{Equivalent near-oracle performance.}
+    Despite the simpler tuning, the Square-Root LASSO achieves the same near-minimax
+    optimal rate $O(\sigma\sqrt{s\log p/n})$ for estimation error as the optimally-tuned LASSO.
+    There is no statistical price for the simpler calibration.
+
+    \item \textbf{Practical robustness.}
+    Because the estimator is pivotal, it is more robust to heteroscedasticity and
+    model misspecification of the noise distribution. Even if $\sigma$ varies or is
+    hard to estimate, the same $\lambda$ works.
+
+    \item \textbf{Conic programming formulation.}
+    The Square-Root LASSO can be reformulated as a second-order cone program (SOCP),
+    which is a convex optimization problem solvable in polynomial time by standard
+    interior-point methods. This makes it computationally tractable and allows the use
+    of off-the-shelf solvers.
+\end{enumerate}
+
+In summary, the Square-Root LASSO retains all the theoretical guarantees of the LASSO
+while eliminating the need for noise-level estimation, making it more practical and
+easier to deploy in real-world high-dimensional settings.
+
+\newpage
+%======================================================================
+\section*{Question 5: SVT for Low-Rank Matrix Completion}
+%======================================================================
+
+\subsection*{5.1 Problem Setup}
+
+We solve the low-rank matrix completion problem via the Singular Value Thresholding
+(SVT) algorithm.  Specifically, we use the Inexact Augmented Lagrange Multiplier (IALM)
+variant, which converges significantly faster than vanilla SVT.
+
+\paragraph{Matrix generation (Eckart-Young).}
+A rank-$r$ matrix $\boldsymbol{X} \in \mathbb{R}^{n \times n}$ is created as
+$\boldsymbol{X} = \boldsymbol{A}\boldsymbol{B}^T$ where
+$\boldsymbol{A}, \boldsymbol{B} \in \mathbb{R}^{n \times r}$ have i.i.d.\
+$\mathcal{N}(0,1)$ entries.
+
+\paragraph{Observation model.}
+We observe $m = f \cdot n^2$ entries uniformly at random and add i.i.d.\ Gaussian noise
+with standard deviation $f_\sigma = 0.02 \times \text{mean}(|\text{observed entries}|)$.
+
+\paragraph{Algorithm (IALM for nuclear norm minimization).}
+We solve
+\[
+\min_{\boldsymbol{X}} \;\lambda\|\boldsymbol{X}\|_* \quad\text{s.t.}\quad
+\mathcal{P}_\Omega(\boldsymbol{X}) = \boldsymbol{b},
+\]
+via the augmented Lagrangian iteration:
+\begin{align}
+\boldsymbol{T}^{(k)} &= \boldsymbol{X}^{(k)}\;\text{with}\;
+T^{(k)}_{ij} \leftarrow b_{ij} + Y^{(k)}_{ij}/\mu_k \;\;\forall (i,j)\in\Omega,\\
+\boldsymbol{X}^{(k+1)} &= \mathcal{D}_{\lambda/\mu_k}\!\left(\boldsymbol{T}^{(k)}\right)
+\quad\text{(soft-threshold singular values)},\\
+Y^{(k+1)}_{ij} &= Y^{(k)}_{ij} + \mu_k(b_{ij} - X^{(k+1)}_{ij}),\quad (i,j)\in\Omega,\\
+\mu_{k+1} &= \min(\rho\,\mu_k,\; 10^7),
+\end{align}
+where $\mathcal{D}_\tau(\boldsymbol{M}) = \boldsymbol{U}\max(\boldsymbol{\Sigma}-\tau\boldsymbol{I},0)\boldsymbol{V}^T$
+denotes the SVT operator, and $\rho = 1.15$ is the penalty growth factor.
+
+\paragraph{Cross-validation.}
+The regularization parameter $\lambda$ is selected by 2-fold cross-validation on the
+observed entries, from the candidate set $\{0.01, 0.1, 1, 10, 50\}$.
+
+\paragraph{RMSE metric.}
+$\text{RMSE} = \|\hat{\boldsymbol{X}} - \boldsymbol{X}\|_F \;/\; \|\boldsymbol{X}\|_F$.
+
+\subsection*{5.2 Results: $n = 1000$}
+
+\begin{table}[h!]
+\centering
+\caption{RMSE $\|\hat{\boldsymbol{X}}-\boldsymbol{X}\|_F/\|\boldsymbol{X}\|_F$ for $n=1000$.}
+\begin{tabular}{c|cccc}
+\toprule
+$r \;\backslash\; f$ & 0.05 & 0.15 & 0.30 & 0.40 \\
+\midrule
+3  & 0.2772 & 0.0434 & 0.0505 & 0.0538 \\
+10 & 0.4320 & 0.0459 & 0.0532 & 0.0569 \\
+40 & 0.9564 & 0.0538 & 0.0532 & 0.0563 \\
+80 & 1.0008 & 0.6816 & 0.0522 & 0.0546 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Execution time (seconds) for $n=1000$.}
+\begin{tabular}{c|cccc}
+\toprule
+$r \;\backslash\; f$ & 0.05 & 0.15 & 0.30 & 0.40 \\
+\midrule
+3  & 3.1 & 3.2 & 3.5 & 3.5 \\
+10 & 4.5 & 5.0 & 5.8 & 4.6 \\
+40 & 5.7 & 10.2 & 12.1 & 11.0 \\
+80 & 3.2 & 8.9 & 10.9 & 10.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{5.3 Results: $n = 3000$}
+
+\textbf{Note:} The original assignment leaves $r\in\{\}$ empty for $n=3000$.
+We use $r \in \{3, 10, 40, 80\}$ (same as $n=1000$) as the most likely intended values.
+
+\begin{table}[h!]
+\centering
+\caption{RMSE $\|\hat{\boldsymbol{X}}-\boldsymbol{X}\|_F/\|\boldsymbol{X}\|_F$ for $n=3000$.}
+\begin{tabular}{c|cccc}
+\toprule
+$r \;\backslash\; f$ & 0.02 & 0.05 & 0.10 & 0.20 \\
+\midrule
+3  & 0.3657 & 0.1388 & 0.0584 & 0.0643 \\
+10 & 0.4013 & 0.0883 & 0.0599 & 0.0675 \\
+40 & 1.0117 & 0.1079 & 0.0614 & 0.0683 \\
+80 & 1.0446 & 0.8918 & 0.0621 & 0.0690 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Execution time (seconds) for $n=3000$.}
+\begin{tabular}{c|cccc}
+\toprule
+$r \;\backslash\; f$ & 0.02 & 0.05 & 0.10 & 0.20 \\
+\midrule
+3  & 27.8 & 30.1 & 31.4 & 38.1 \\
+10 & 28.0 & 33.3 & 35.1 & 39.1 \\
+40 & 33.5 & 47.4 & 46.8 & 52.6 \\
+80 & 30.5 & 67.2 & 68.4 & 70.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{5.4 Discussion}
+
+\begin{enumerate}
+    \item \textbf{Effect of observation fraction $f$:}
+    As $f$ increases (more entries observed), RMSE decreases significantly.
+    For example, with $r=3$ at $n=1000$: RMSE drops from $0.277$ at $f=0.05$
+    to $0.043$ at $f=0.15$.
+
+    \item \textbf{Effect of rank $r$:}
+    Higher rank matrices are harder to recover, especially when few entries are observed.
+    At $f=0.05$, $r=80$ gives RMSE $\approx 1.0$ (essentially no recovery), while
+    $r=3$ gives $0.277$. However, when $f$ is sufficiently large relative to $r$
+    (the degrees of freedom of a rank-$r$ matrix is $r(2n-r)$), all ranks achieve
+    similar low RMSE ($\sim 0.05$).
+
+    \item \textbf{Information-theoretic limit:}
+    A rank-$r$ matrix of size $n \times n$ has $r(2n-r)$ degrees of freedom.
+    Recovery requires $m \gtrsim r(2n-r)$ observations. When $fn^2 < r(2n-r)$,
+    recovery is fundamentally impossible, explaining the RMSE $\approx 1$ cases.
+
+    \item \textbf{Execution time:}
+    Time scales primarily with $n$ (due to SVD cost) and $k_{\text{svd}}$ (which
+    tracks the rank). The IALM variant is efficient: $n=1000$ completes in $3$--$12$s
+    and $n=3000$ in $28$--$70$s using randomised truncated SVD.
+\end{enumerate}
+
+\end{document}

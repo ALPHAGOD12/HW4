@@ -1,0 +1,48 @@
+\title{Assignment 3: CS 754, Advanced Image Processing}
+\author{}
+\date{Due date: 18th March before 11:55 pm}
+
+\documentclass[11pt]{article}
+
+\usepackage{amsmath,soul,xcolor}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{ulem}
+\usepackage[margin=0.5in]{geometry}
+\begin{document}
+\maketitle
+
+\textbf{Remember the honor code while submitting this (and every other) assignment. All members of the group should work on and \emph{understand} all parts of the assignment. We will adopt a \textbf{zero-tolerance policy} against any violation.}
+\\
+\\
+\textbf{Submission instructions:} You should ideally type out all the answers in MS office or Openoffice (with the equation editor) or, more preferably, using Latex. In either case, prepare a pdf file. Create a single zip or rar file containing the report, code and sample outputs and name it as follows: A4-IdNumberOfFirstStudent-IdNumberOfSecondStudent-IdNumberOfThirdStudent.zip. (If you are doing the assignment alone, the name of the zip file is A4-IdNumber.zip. If it is a group of two students, the name of the file should be  A4-IdNumberOfFirstStudent-IdNumberOfSecondStudent.zip). Upload the file on moodle BEFORE 11:55 pm on 1st April, which is the time that the submission is due. No assignments will be accepted after a cutoff deadline of 10 am on 2nd April. Note that only one student per group should upload their work on moodle, although all group members will receive grades. Please preserve a copy of all your work until the end of the semester. \emph{If you have difficulties, please do not hesitate to seek help from me.} The time period between the time the submission is due and the cutoff deadline is to accommodate for any unprecedented issues. But no assignments will accepted after the cutoff deadline. 
+
+\begin{enumerate}
+\item Do exercise 7.2 of the book `Statistical Learning with Sparsity: The Lasso and Generalizations' from \url{https://web.stanford.edu/~hastie/StatLearnSparsity_files/SLS_corrected_1.4.16.pdf}. This exercise proves the Eckart-Young theorem for the singular value decomposition. The proof in this exercise is elegant and simpler compared to that from standard linear algebra textbooks. \textsf{[15 points]}
+
+\item We did the PCA derivation in class for one direction. Repeat the derivation for two (mutually perpendicular) directions. Let $\boldsymbol{x}_1,\dots,\boldsymbol{x}_n\in\mathbb{R}^d$ be the data and define the sample mean
+$\bar{\boldsymbol{x}}=\frac{1}{n}\sum_{i=1}^n \boldsymbol{x}_i,
+\qquad
+\boldsymbol{y}_i=\boldsymbol{x}_i-\bar{\boldsymbol{x}}\quad (i=1,\dots,n)$.
+We seek an orthonormal $d\times 2$ matrix $\boldsymbol{U}:=[\boldsymbol{u}_1\ \boldsymbol{u}_2]$ with $\boldsymbol{U}^\top\boldsymbol{U}=\boldsymbol{I}_2$, whose column space best reconstructs the data.
+The reconstructed vector is $\hat{\boldsymbol{y}}_i=\boldsymbol{U}\boldsymbol{U}^\top\boldsymbol{y}_i$. The total squared reconstruction error is
+$J(\boldsymbol{U})=\sum_{i=1}^n \|\boldsymbol{y}_i-\hat{\boldsymbol{y}}_i\|^2
+= \sum_{i=1}^n \|\boldsymbol{y}_i\|^2 - \sum_{i=1}^n \|\boldsymbol{U}^\top\boldsymbol{y}_i\|^2$. \textsf{[15 points]}
+
+\item Consider that you learned a dictionary $\boldsymbol{D}$ to sparsely represent a certain class $\mathcal{S}$ of images - say handwritten alphabet or digit images. How will you convert $\boldsymbol{D}$ to another dictionary which will sparsely represent the following classes of images? Note that you are not allowed to learn the dictionary all over again, as it is time-consuming. 
+\begin{enumerate}
+\item Class $\mathcal{S}_1$ which consists of images obtained by applying a known affine transform $\boldsymbol{A_1}$ to a subset of the images in class $\mathcal{S}$, and by applying another known affine transform $\boldsymbol{A_2}$ to the other subset. Assume that the images in $\mathcal{S}$ consisted of a foreground against a constant 0-valued background, and that the affine transformations $\boldsymbol{A_1}, \boldsymbol{A_2}$ do not cause the foreground to go outside the image canvas. 
+\item Class $\mathcal{S}_2$ which consists of images obtained by applying an intensity transformation $I^i_{new}(x,y) = \alpha (I^i_{old}(x,y))^2 + \beta (I^i_{old}(x,y)) + \gamma$ to the images in $\mathcal{S}$, where $\alpha,\beta,\gamma$ are known.  
+\item Class $\mathcal{S}_4$ which consists of images obtained by downsampling the images in $\mathcal{S}$ by a factor of $k$ in both X and Y directions. 
+\item Class $\mathcal{S}_5$ which consists of images obtained by applying a blur kernel which is known to be a linear combination of blur kernels belonging to a known set $\mathcal{B}$, to the images in $\mathcal{S}$. 
+\item Class $\mathcal{S}_6$ which consists of 2D signals obtained by applying the 2D Discrete Fourier transform transform to the images in $\mathcal{S}$. 
+\textsf{[4 x 5 = 20 points]}
+\end{enumerate}
+
+\item Find out a research paper which proposes a new variant of the LASSO problem. You can use the book mentioned in question 1 for reference. Here are some example variants: square-root LASSO, elastic net, debiased LASSO, graphical LASSO. Do not use the robust LASSO as we had seen in an earlier homework (which one? which question?). In your report, mention the title, author list, venue and year of publication for the research paper. Name the variant proposed in the paper and express it mathematically with meaning and dimensions (scalar/vector/matrix/tensor) of all symbols. State the key theorem or theoretical property mentioned in the paper regarding the new estimator (\textbf{please choose a paper that has some theorem in it}). Explain the advantage of the proposed estimator over the LASSO. \textsf{[2.5+2.5+5+10=20 points]}  
+
+\item In this exercise, you will implement the singular value thresholding (SVT) algorithm for low rank matrix completion. Create a matrix of size $n \times n$ having rank $r < n$ using the Eckart Young theorem. Blank out all \emph{except} $fn^2$ entries of the matrix where $f \in (0,1)$. That is $f = 0.01$, then only $1\%$ of all entries of the matrix are observed. To the observed entries, add iid zero-mean Gaussian noise with standard deviation $f_{\sigma} := 0.02 \times \text{avg. value of entries that are not blanked out}$. In your experiments, set $n = 1000$. For $r \in \{3, 10,40,80\}$ and $f \in \{0.05, 0.15, 0.3, 0.4\}$, implement the SVT and record the RMSE $\|\boldsymbol{\hat{X}}-\boldsymbol{X}\|_F/\|\boldsymbol{X}\|_F$ between the true matrix $\boldsymbol{X}$ and its estimate $\boldsymbol{\hat{X}}$. Plot these values as a table. Also record the time taken for execution using the MATLAB commands \texttt{tic} and \texttt{toc}. Each time, choose the regularization parameter using the cross validation technique from HW3. Repeat all of this for $n = 3000$ with $r \in \{\}$ and $f \in \{0.02,0.05, 0.1, 0.2\}$. \textsf{[30 points]}
+
+\end{enumerate}
+
+\end{document}
