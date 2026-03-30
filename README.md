@@ -1,6 +1,6 @@
 # CS 754 — Advanced Image Processing: HW4
 
-Solutions to Questions 1, 2, 4, and 5 of Assignment 4.
+Solutions to all 5 questions of Assignment 4.
 
 ## Question 1: Eckart-Young Theorem (Exercise 7.2)
 
@@ -9,6 +9,15 @@ A complete, detailed proof of the **Eckart-Young theorem** from Exercise 7.2 of 
 ## Question 2: PCA Derivation for Two Directions
 
 Full derivation of PCA for two mutually perpendicular directions using Lagrange multipliers. Shows that the optimal orthonormal basis U = [u1, u2] minimizing reconstruction error consists of the top two eigenvectors of the sample covariance matrix S, with minimum error equal to the sum of the remaining eigenvalues.
+
+## Question 3: Dictionary Conversion for Transformed Image Classes
+
+Derives new sparse dictionaries for 5 transformed image classes without re-learning:
+- **(a)** Piecewise affine transform — concatenate transformed dictionaries
+- **(b)** Quadratic intensity transform — lifted dictionary with Hadamard products
+- **(c)** Downsampling — apply downsampling operator to each atom
+- **(d)** Blur from a known set — concatenate blur-convolved dictionaries
+- **(e)** 2D DFT — apply DFT to each atom
 
 ## Question 4: LASSO Variant — Square-Root LASSO
 

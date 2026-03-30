@@ -6,7 +6,7 @@
 \usepackage{graphicx}
 
 \title{Assignment 4: CS 754, Advanced Image Processing\\
-\large Solutions to Questions 1, 2, 4, and 5}
+\large Solutions to Questions 1, 2, 3, 4, and 5}
 \author{}
 \date{}
 
@@ -360,6 +360,196 @@ corresponding to its two largest eigenvalues. This naturally generalises the 1-d
 PCA derivation done in class: for one direction, the optimal $\boldsymbol{u}_1$ is the top
 eigenvector; for two mutually perpendicular directions, the optimal
 $\boldsymbol{U} = [\boldsymbol{u}_1\;\boldsymbol{u}_2]$ consists of the top two eigenvectors.
+
+\newpage
+%======================================================================
+\section*{Question 3: Dictionary Conversion for Transformed Image Classes}
+%======================================================================
+
+\textbf{Setup.}
+We have a learned dictionary $\boldsymbol{D} \in \mathbb{R}^{p \times K}$ (where $p$ is the
+vectorised image dimension and $K$ is the number of atoms) such that every image
+$\boldsymbol{x} \in \mathcal{S}$ admits a sparse representation
+$\boldsymbol{x} \approx \boldsymbol{D}\boldsymbol{\alpha}$ with $\boldsymbol{\alpha}$ sparse.
+The task is to derive a \emph{new} dictionary for each transformed class \textbf{without}
+re-learning from scratch.
+
+%----------------------------------------------------------------------
+\subsection*{3(a) Class $\mathcal{S}_1$: Piecewise Affine Transform [5 points]}
+
+Images in $\mathcal{S}_1$ are obtained by applying a known affine transform $\boldsymbol{A}_1$
+to one subset and $\boldsymbol{A}_2$ to the other subset of images in $\mathcal{S}$.
+The background is constant 0, and the transforms keep the foreground within the canvas.
+
+\paragraph{Key observation.}
+An affine spatial transformation on a vectorised image can be written as a
+matrix--vector multiplication.
+Let $\boldsymbol{T}_j \in \mathbb{R}^{p \times p}$ be the matrix that implements the
+spatial affine transform $\boldsymbol{A}_j$ (via bilinear interpolation or
+nearest-neighbour resampling) on a vectorised image.
+Then for an image $\boldsymbol{x} \in \mathcal{S}$, the transformed image is
+$\boldsymbol{x}' = \boldsymbol{T}_j\boldsymbol{x}$.
+
+Since $\boldsymbol{x} = \boldsymbol{D}\boldsymbol{\alpha}$, we get
+\[
+\boldsymbol{x}' = \boldsymbol{T}_j\boldsymbol{D}\boldsymbol{\alpha}.
+\]
+The sparse code $\boldsymbol{\alpha}$ is \emph{the same}---only the dictionary changes.
+
+\paragraph{New dictionary.}
+Since $\mathcal{S}_1$ is the \emph{union} of images transformed by $\boldsymbol{A}_1$ and
+$\boldsymbol{A}_2$, a single transformed dictionary may not suffice (an image transformed
+by $\boldsymbol{A}_1$ will not be sparse under $\boldsymbol{T}_2\boldsymbol{D}$, in general).
+The new dictionary is the \textbf{concatenation}:
+\[
+\boxed{\boldsymbol{D}_1 = [\boldsymbol{T}_1\boldsymbol{D} \;\;\; \boldsymbol{T}_2\boldsymbol{D}]
+\;\in\;\mathbb{R}^{p \times 2K}.}
+\]
+Any image in $\mathcal{S}_1$ is sparse under $\boldsymbol{D}_1$: it uses atoms from
+$\boldsymbol{T}_1\boldsymbol{D}$ or $\boldsymbol{T}_2\boldsymbol{D}$ (but not both),
+so the coefficient vector has at most $s$ nonzeros in the relevant half and zeros in the
+other half, preserving sparsity.
+
+%----------------------------------------------------------------------
+\subsection*{3(b) Class $\mathcal{S}_2$: Quadratic Intensity Transform [5 points]}
+
+Images in $\mathcal{S}_2$ satisfy
+$I_{\text{new}}(x,y) = \alpha\,[I_{\text{old}}(x,y)]^2 + \beta\,I_{\text{old}}(x,y) + \gamma$,
+with known $\alpha,\beta,\gamma$.
+
+\paragraph{Analysis.}
+In vector form: $\boldsymbol{x}_{\text{new}} = \alpha\,\boldsymbol{x} \odot \boldsymbol{x} + \beta\,\boldsymbol{x} + \gamma\,\boldsymbol{1}$,
+where $\odot$ denotes element-wise (Hadamard) product and $\boldsymbol{1}$ is the all-ones vector.
+
+The $\beta\boldsymbol{x} + \gamma\boldsymbol{1}$ part is linear and can be handled easily:
+$\beta\boldsymbol{D}\boldsymbol{\alpha} + \gamma\boldsymbol{1}$.
+The problematic term is $\alpha(\boldsymbol{D}\boldsymbol{\alpha})\odot(\boldsymbol{D}\boldsymbol{\alpha})$,
+which is \textbf{quadratic} in $\boldsymbol{\alpha}$---this breaks the linear
+$\boldsymbol{x} = \boldsymbol{D}\boldsymbol{\alpha}$ model.
+
+\paragraph{New dictionary.}
+We cannot write $\boldsymbol{x}_{\text{new}} = \boldsymbol{D}_{\text{new}}\boldsymbol{\alpha}$
+for the \emph{same} sparse $\boldsymbol{\alpha}$, because the squared term introduces
+cross-products of atoms. Instead, we construct an \emph{expanded} dictionary.
+
+Let $\boldsymbol{d}_j$ denote the $j$-th column (atom) of $\boldsymbol{D}$. If
+$\boldsymbol{x} = \sum_j \alpha_j \boldsymbol{d}_j$, then
+\[
+\boldsymbol{x}\odot\boldsymbol{x} = \sum_{j}\sum_{k}\alpha_j\alpha_k\,(\boldsymbol{d}_j\odot\boldsymbol{d}_k).
+\]
+Define the ``lifted'' dictionary containing all pairwise Hadamard products:
+\[
+\boldsymbol{D}_{\text{quad}} = \{\boldsymbol{d}_j \odot \boldsymbol{d}_k : 1 \leq j \leq k \leq K\}
+\;\in\;\mathbb{R}^{p \times \binom{K+1}{2}}.
+\]
+Then the new dictionary for $\mathcal{S}_2$ is:
+\[
+\boxed{\boldsymbol{D}_2 = [\alpha\,\boldsymbol{D}_{\text{quad}} \;\;\; \beta\,\boldsymbol{D} \;\;\; \gamma\,\boldsymbol{1}].}
+\]
+The coefficient vector is $\boldsymbol{\alpha}_{\text{new}} = [(\alpha_j\alpha_k)_{j\leq k},\;\boldsymbol{\alpha}^T,\;1]^T$.
+If $\boldsymbol{\alpha}$ has $s$ nonzeros, then $\boldsymbol{\alpha}_{\text{new}}$ has at most
+$\binom{s+1}{2} + s + 1$ nonzeros, which is still small when $s \ll K$.
+
+\paragraph{Special case $\alpha = 0$:} The transform becomes affine in intensity
+($\boldsymbol{x}_{\text{new}} = \beta\boldsymbol{x} + \gamma\boldsymbol{1}$), and the new
+dictionary is simply $\boldsymbol{D}_2 = [\beta\boldsymbol{D}\;\;\gamma\boldsymbol{1}]$.
+
+%----------------------------------------------------------------------
+\subsection*{3(c) Class $\mathcal{S}_4$: Downsampling by Factor $k$ [5 points]}
+
+Images in $\mathcal{S}_4$ are obtained by downsampling by $k$ in both directions.
+
+\paragraph{Key observation.}
+Downsampling by $k$ in both X and Y is a \emph{linear} operation on the vectorised image.
+Let $\boldsymbol{H} \in \mathbb{R}^{p' \times p}$ be the downsampling matrix (where
+$p' = p/k^2$ for images of size $\sqrt{p}\times\sqrt{p}$; each row of $\boldsymbol{H}$
+picks out the appropriate pixel or performs local averaging before subsampling).
+
+If $\boldsymbol{x} = \boldsymbol{D}\boldsymbol{\alpha}$, then the downsampled image is
+\[
+\boldsymbol{x}_{\text{down}} = \boldsymbol{H}\boldsymbol{x} = \boldsymbol{H}\boldsymbol{D}\boldsymbol{\alpha}.
+\]
+The sparse code $\boldsymbol{\alpha}$ is preserved.
+
+\paragraph{New dictionary.}
+\[
+\boxed{\boldsymbol{D}_4 = \boldsymbol{H}\boldsymbol{D} \;\in\;\mathbb{R}^{p' \times K}.}
+\]
+Each atom $\boldsymbol{d}_j$ is replaced by its downsampled version $\boldsymbol{H}\boldsymbol{d}_j$.
+The number of atoms and the sparsity of $\boldsymbol{\alpha}$ are unchanged.
+
+%----------------------------------------------------------------------
+\subsection*{3(d) Class $\mathcal{S}_5$: Blur from a Known Set [5 points]}
+
+Images in $\mathcal{S}_5$ are obtained by convolving images from $\mathcal{S}$ with a
+blur kernel $\boldsymbol{h}$ that is a \emph{known} linear combination of kernels from
+a known set $\mathcal{B} = \{\boldsymbol{b}_1, \dots, \boldsymbol{b}_L\}$:
+\[
+\boldsymbol{h} = \sum_{\ell=1}^L c_\ell\,\boldsymbol{b}_\ell,
+\]
+where the coefficients $c_\ell$ may vary from image to image (but the set $\mathcal{B}$ is known).
+
+\paragraph{Key observation.}
+Convolution is linear, so blurring a vectorised image $\boldsymbol{x}$ with kernel
+$\boldsymbol{h}$ can be written as $\boldsymbol{B}_h\boldsymbol{x}$, where
+$\boldsymbol{B}_h \in \mathbb{R}^{p \times p}$ is the convolution (Toeplitz/circulant) matrix
+for $\boldsymbol{h}$. Since $\boldsymbol{h} = \sum_\ell c_\ell \boldsymbol{b}_\ell$,
+linearity gives $\boldsymbol{B}_h = \sum_\ell c_\ell \boldsymbol{B}_\ell$, where
+$\boldsymbol{B}_\ell$ is the convolution matrix for $\boldsymbol{b}_\ell$.
+
+For $\boldsymbol{x} = \boldsymbol{D}\boldsymbol{\alpha}$:
+\[
+\boldsymbol{x}_{\text{blur}} = \boldsymbol{B}_h\boldsymbol{D}\boldsymbol{\alpha}
+= \sum_{\ell=1}^L c_\ell\,\boldsymbol{B}_\ell\boldsymbol{D}\boldsymbol{\alpha}.
+\]
+
+Since the $c_\ell$ can vary per image, we cannot absorb them into the dictionary.
+Instead, define $\boldsymbol{D}^{(\ell)} = \boldsymbol{B}_\ell\boldsymbol{D} \in \mathbb{R}^{p\times K}$
+for each $\ell$. Then:
+\[
+\boldsymbol{x}_{\text{blur}}
+= \sum_{\ell=1}^L c_\ell\,\boldsymbol{D}^{(\ell)}\boldsymbol{\alpha}
+= [\boldsymbol{D}^{(1)} \;\cdots\; \boldsymbol{D}^{(L)}]
+\begin{pmatrix} c_1\boldsymbol{\alpha} \\ \vdots \\ c_L\boldsymbol{\alpha} \end{pmatrix}.
+\]
+
+\paragraph{New dictionary.}
+\[
+\boxed{\boldsymbol{D}_5 = [\boldsymbol{B}_1\boldsymbol{D} \;\;\; \boldsymbol{B}_2\boldsymbol{D} \;\;\; \cdots \;\;\; \boldsymbol{B}_L\boldsymbol{D}]
+\;\in\;\mathbb{R}^{p \times LK}.}
+\]
+The new coefficient vector is
+$\tilde{\boldsymbol{\alpha}} = [c_1\boldsymbol{\alpha}^T,\dots,c_L\boldsymbol{\alpha}^T]^T \in \mathbb{R}^{LK}$.
+If $\boldsymbol{\alpha}$ has $s$ nonzeros, then $\tilde{\boldsymbol{\alpha}}$ has at most $Ls$
+nonzeros (the same support repeated $L$ times, scaled by different $c_\ell$), which is still
+sparse when $s$ and $L$ are small.
+
+%----------------------------------------------------------------------
+\subsection*{3(e) Class $\mathcal{S}_6$: 2D Discrete Fourier Transform [5 points]}
+
+Images in $\mathcal{S}_6$ are obtained by applying the 2D DFT to images in $\mathcal{S}$.
+
+\paragraph{Key observation.}
+The 2D DFT of a vectorised image $\boldsymbol{x}$ can be written as
+$\boldsymbol{x}_{\text{DFT}} = \boldsymbol{F}\boldsymbol{x}$,
+where $\boldsymbol{F} \in \mathbb{C}^{p \times p}$ is the unitary DFT matrix
+(or equivalently $\boldsymbol{F} = \boldsymbol{F}_{n_1} \otimes \boldsymbol{F}_{n_2}$
+for an $n_1 \times n_2$ image, where $\otimes$ is the Kronecker product and
+$\boldsymbol{F}_{n}$ is the $n$-point DFT matrix).
+
+Since $\boldsymbol{x} = \boldsymbol{D}\boldsymbol{\alpha}$:
+\[
+\boldsymbol{x}_{\text{DFT}} = \boldsymbol{F}\boldsymbol{x} = \boldsymbol{F}\boldsymbol{D}\boldsymbol{\alpha}.
+\]
+The sparse code $\boldsymbol{\alpha}$ is unchanged.
+
+\paragraph{New dictionary.}
+\[
+\boxed{\boldsymbol{D}_6 = \boldsymbol{F}\boldsymbol{D} \;\in\;\mathbb{C}^{p \times K}.}
+\]
+Each atom $\boldsymbol{d}_j$ is replaced by its 2D DFT $\boldsymbol{F}\boldsymbol{d}_j$.
+The number of atoms and the sparsity level are preserved exactly.
+Note that $\boldsymbol{D}_6$ is in general complex-valued.
 
 \newpage
 %======================================================================
