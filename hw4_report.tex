@@ -96,9 +96,10 @@ set $N_{ii} = \sigma_i$, with $N_{ii} = 0$ at all remaining indices.
 Setting the off-diagonal terms and the terms for $i > r$ to zero, we need to minimise
 \[
 \sum_{i=1}^{r}(\sigma_i - N_{ii})^2
-\quad\text{subject to at most $k$ of the $N_{ii}$ being nonzero and each }\leq \sigma_i.
+\quad\text{subject to at most $k$ of the $N_{ii}$ being nonzero.}
 \]
-For a given index $i$ where we \emph{do} set $N_{ii} \neq 0$, the optimal choice is $N_{ii} = \sigma_i$ (reducing that squared term to zero).
+For a given index $i$ where we \emph{do} set $N_{ii} \neq 0$, the unconstrained
+minimiser of $(\sigma_i - N_{ii})^2$ is $N_{ii} = \sigma_i$ (reducing that squared term to zero).
 For indices where $N_{ii} = 0$, the contribution is $\sigma_i^2$.
 To minimise the total, we should zero out the $k$ \emph{largest} squared terms, i.e., set $N_{ii} = \sigma_i$ for $i = 1, 2, \dots, k$ (since $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r$).
 
@@ -266,58 +267,38 @@ Left-multiply equation (II) by $\boldsymbol{u}_1^T$:
 \tag{IV}
 \]
 
-Since $\boldsymbol{S}$ is symmetric, $\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_2$.
-Equations (III) and (IV) are consistent. Now left-multiply (I) by $\boldsymbol{u}_1^T$:
-\[
-2\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1
-- 2\lambda_1 - \mu\underbrace{\boldsymbol{u}_1^T\boldsymbol{u}_2}_{=\,0} = 0
-\quad\Longrightarrow\quad
-\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1.
-\]
-
+Left-multiply (I) by $\boldsymbol{u}_1^T$:
+$2\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1
+- 2\lambda_1 - \mu\underbrace{\boldsymbol{u}_1^T\boldsymbol{u}_2}_{=\,0} = 0$,
+so $\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1$.
 Similarly, from (II): $\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_2 = \lambda_2$.
 
-Now, from (I): $\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1\boldsymbol{u}_1 + \frac{\mu}{2}\boldsymbol{u}_2$.
-Left-multiply by $\boldsymbol{u}_2^T$:
-$\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \frac{\mu}{2}$.
-But from (III): $\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \frac{\mu}{2}$.
-This is consistent.
-
-From (II): $\boldsymbol{S}\,\boldsymbol{u}_2 = \lambda_2\boldsymbol{u}_2 + \frac{\mu}{2}\boldsymbol{u}_1$.
-If $\lambda_1 \neq \lambda_2$ (the generic case), left-multiply (I) by $\boldsymbol{u}_2^T$ and (II) by $\boldsymbol{u}_1^T$:
-\begin{align}
-2\boldsymbol{u}_2^T\boldsymbol{S}\boldsymbol{u}_1 &= \mu \tag{from III}\\
-2\boldsymbol{u}_1^T\boldsymbol{S}\boldsymbol{u}_2 &= \mu \tag{from IV}
-\end{align}
-Substitute from (I): $\boldsymbol{S}\boldsymbol{u}_1 = \lambda_1\boldsymbol{u}_1 + \frac{\mu}{2}\boldsymbol{u}_2$
-into (II): $2(\lambda_1\boldsymbol{u}_1 + \frac{\mu}{2}\boldsymbol{u}_2)^T\boldsymbol{u}_2 = ... $
-
-More directly: assume $\mu \neq 0$.
-From (I) and (II):
+From (I) and (II), we can rewrite:
 \begin{align}
 \boldsymbol{S}\boldsymbol{u}_1 &= \lambda_1\boldsymbol{u}_1 + \tfrac{\mu}{2}\boldsymbol{u}_2, \label{eq:su1}\\
 \boldsymbol{S}\boldsymbol{u}_2 &= \lambda_2\boldsymbol{u}_2 + \tfrac{\mu}{2}\boldsymbol{u}_1. \label{eq:su2}
 \end{align}
-Multiply \eqref{eq:su1} by $\boldsymbol{u}_2^T$ on the left: $\boldsymbol{u}_2^T\boldsymbol{S}\boldsymbol{u}_1 = \tfrac{\mu}{2}$.
-Multiply \eqref{eq:su2} by $\boldsymbol{u}_1^T$ on the left: $\boldsymbol{u}_1^T\boldsymbol{S}\boldsymbol{u}_2 = \tfrac{\mu}{2}$
-(consistent, since $\boldsymbol{S} = \boldsymbol{S}^T$).
 
-Apply $\boldsymbol{S}$ to \eqref{eq:su1}:
-$\boldsymbol{S}^2\boldsymbol{u}_1 = \lambda_1\boldsymbol{S}\boldsymbol{u}_1 + \tfrac{\mu}{2}\boldsymbol{S}\boldsymbol{u}_2
-= \lambda_1(\lambda_1\boldsymbol{u}_1 + \tfrac{\mu}{2}\boldsymbol{u}_2) + \tfrac{\mu}{2}(\lambda_2\boldsymbol{u}_2 + \tfrac{\mu}{2}\boldsymbol{u}_1)$,
+This shows that $\operatorname{span}(\boldsymbol{u}_1,\boldsymbol{u}_2)$ is a 2-dimensional
+invariant subspace of $\boldsymbol{S}$. In the basis $\{\boldsymbol{u}_1,\boldsymbol{u}_2\}$,
+$\boldsymbol{S}$ restricted to this subspace has the $2\times 2$ representation
+\[
+\boldsymbol{S}\big|_{\operatorname{span}} =
+\begin{pmatrix}\lambda_1 & \mu/2 \\ \mu/2 & \lambda_2\end{pmatrix}.
+\]
 
-giving $\boldsymbol{S}^2\boldsymbol{u}_1 = (\lambda_1^2 + \tfrac{\mu^2}{4})\boldsymbol{u}_1 + \tfrac{\mu}{2}(\lambda_1+\lambda_2)\boldsymbol{u}_2$.
+\paragraph{Key WLOG argument.}
+We can always find a $2\times 2$ orthogonal rotation $\boldsymbol{R}$ that diagonalises
+this symmetric matrix, giving new orthonormal vectors
+$[\boldsymbol{u}_1'\;\boldsymbol{u}_2'] = [\boldsymbol{u}_1\;\boldsymbol{u}_2]\boldsymbol{R}$
+that are eigenvectors of $\boldsymbol{S}$ with eigenvalues $\tilde\lambda_1, \tilde\lambda_2$
+(where $\tilde\lambda_1 + \tilde\lambda_2 = \lambda_1 + \lambda_2$ by trace preservation).
+Crucially,
+$\operatorname{span}(\boldsymbol{u}_1',\boldsymbol{u}_2') = \operatorname{span}(\boldsymbol{u}_1,\boldsymbol{u}_2)$,
+and since the projection $\boldsymbol{U}\boldsymbol{U}^T$ depends only on the column space
+(not the specific basis), the objective $J$ is unchanged.
 
-This means $\boldsymbol{u}_1$ and $\boldsymbol{u}_2$ span a 2-dimensional invariant subspace of $\boldsymbol{S}$.
-In that subspace, $\boldsymbol{S}$ has representation
-$\begin{pmatrix}\lambda_1 & \mu/2 \\ \mu/2 & \lambda_2\end{pmatrix}$.
-We can always rotate within this subspace to diagonalise this $2\times 2$ matrix, yielding new orthonormal
-$\boldsymbol{u}_1', \boldsymbol{u}_2'$ that \emph{are} eigenvectors of $\boldsymbol{S}$
-with eigenvalues $\tilde\lambda_1, \tilde\lambda_2$, and the same column space
-$\operatorname{span}(\boldsymbol{u}_1,\boldsymbol{u}_2) = \operatorname{span}(\boldsymbol{u}_1',\boldsymbol{u}_2')$.
-Since $J$ depends only on the column space of $\boldsymbol{U}$ (because $\boldsymbol{U}\boldsymbol{U}^T$ is the
-projection onto $\operatorname{col}(\boldsymbol{U})$), we may \textbf{without loss of generality} take
-$\mu = 0$. Then equations (I) and (II) become:
+Therefore, we may \textbf{without loss of generality} take $\mu = 0$, and the KKT conditions become:
 \[
 \boxed{\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1\,\boldsymbol{u}_1
 \qquad\text{and}\qquad
@@ -341,8 +322,8 @@ Let $\lambda^{(1)} \geq \lambda^{(2)} \geq \cdots \geq \lambda^{(d)} \geq 0$ be 
 of $\boldsymbol{S}$ (all non-negative since $\boldsymbol{S}$ is positive semidefinite).
 The optimal choice is:
 \[
-\boldsymbol{u}_1^* = \boldsymbol{e}_1\quad(\text{eigenvector for }\lambda^{(1)}),\qquad
-\boldsymbol{u}_2^* = \boldsymbol{e}_2\quad(\text{eigenvector for }\lambda^{(2)}).
+\boldsymbol{u}_1^* = \text{eigenvector of } \boldsymbol{S} \text{ for } \lambda^{(1)},\qquad
+\boldsymbol{u}_2^* = \text{eigenvector of } \boldsymbol{S} \text{ for } \lambda^{(2)}.
 \]
 
 \subsection*{2.6 Final Result}
@@ -415,7 +396,8 @@ other half, preserving sparsity.
 
 Images in $\mathcal{S}_2$ satisfy
 $I_{\text{new}}(x,y) = \alpha\,[I_{\text{old}}(x,y)]^2 + \beta\,I_{\text{old}}(x,y) + \gamma$,
-with known $\alpha,\beta,\gamma$.
+with known scalars $\alpha,\beta,\gamma$.
+(We use bold $\boldsymbol{\alpha}$ for the sparse code and plain $\alpha$ for the transform parameter.)
 
 \paragraph{Analysis.}
 In vector form: $\boldsymbol{x}_{\text{new}} = \alpha\,\boldsymbol{x} \odot \boldsymbol{x} + \beta\,\boldsymbol{x} + \gamma\,\boldsymbol{1}$,
@@ -442,13 +424,18 @@ Define the ``lifted'' dictionary containing all pairwise Hadamard products:
 \boldsymbol{D}_{\text{quad}} = \{\boldsymbol{d}_j \odot \boldsymbol{d}_k : 1 \leq j \leq k \leq K\}
 \;\in\;\mathbb{R}^{p \times \binom{K+1}{2}}.
 \]
-Then the new dictionary for $\mathcal{S}_2$ is:
+Then $\boldsymbol{x}_{\text{new}} = \alpha\,\boldsymbol{D}_{\text{quad}}\,\boldsymbol{c}
++ \beta\,\boldsymbol{D}\,\boldsymbol{\alpha} + \gamma\,\boldsymbol{1}$,
+where $\boldsymbol{c}$ is the vector of products $(\alpha_j\alpha_k)_{j \leq k}$.
+Writing this as a single dictionary--coefficient product:
 \[
-\boxed{\boldsymbol{D}_2 = [\alpha\,\boldsymbol{D}_{\text{quad}} \;\;\; \beta\,\boldsymbol{D} \;\;\; \gamma\,\boldsymbol{1}].}
+\boxed{\boldsymbol{D}_2 = [\alpha\,\boldsymbol{D}_{\text{quad}} \;\;\; \beta\,\boldsymbol{D} \;\;\; \gamma\,\boldsymbol{1}],
+\quad
+\boldsymbol{\alpha}_{\text{new}} = [\boldsymbol{c}^T,\;\boldsymbol{\alpha}^T,\;1]^T.}
 \]
-The coefficient vector is $\boldsymbol{\alpha}_{\text{new}} = [(\alpha_j\alpha_k)_{j\leq k},\;\boldsymbol{\alpha}^T,\;1]^T$.
-If $\boldsymbol{\alpha}$ has $s$ nonzeros, then $\boldsymbol{\alpha}_{\text{new}}$ has at most
-$\binom{s+1}{2} + s + 1$ nonzeros, which is still small when $s \ll K$.
+If $\boldsymbol{\alpha}$ has $s$ nonzeros, then $\boldsymbol{c}$ has at most $\binom{s+1}{2}$ nonzeros,
+so $\boldsymbol{\alpha}_{\text{new}}$ has at most $\binom{s+1}{2} + s + 1$ nonzeros---still
+sparse when $s \ll K$.
 
 \paragraph{Special case $\alpha = 0$:} The transform becomes affine in intensity
 ($\boldsymbol{x}_{\text{new}} = \beta\boldsymbol{x} + \gamma\boldsymbol{1}$), and the new
