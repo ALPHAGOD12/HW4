@@ -1,6 +1,10 @@
 # CS 754 — Advanced Image Processing: HW4
 
-Solutions to Questions 4 and 5 of Assignment 4.
+Solutions to Questions 1, 4, and 5 of Assignment 4.
+
+## Question 1: Eckart-Young Theorem (Exercise 7.2)
+
+A complete, detailed proof of the **Eckart-Young theorem** from Exercise 7.2 of _Statistical Learning with Sparsity_ (Hastie, Tibshirani, Wainwright). The proof shows that the best rank-k approximation to a matrix in the Frobenius norm is given by its truncated SVD, using the elegant unitary-invariance argument that decouples the problem into independent scalar optimizations.
 
 ## Question 4: LASSO Variant — Square-Root LASSO
 

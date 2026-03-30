@@ -6,13 +6,132 @@
 \usepackage{graphicx}
 
 \title{Assignment 4: CS 754, Advanced Image Processing\\
-\large Solutions to Questions 4 and 5}
+\large Solutions to Questions 1, 4, and 5}
 \author{}
 \date{}
 
 \begin{document}
 \maketitle
 
+%======================================================================
+\section*{Question 1: Proof of the Eckart-Young Theorem (Exercise 7.2)}
+%======================================================================
+
+We prove the Eckart-Young theorem, which states that the best rank-$k$
+approximation to a matrix in the Frobenius norm is given by its truncated SVD.
+
+\subsection*{1.1 Theorem Statement}
+
+\textbf{Theorem (Eckart-Young, 1936).}
+Let $\boldsymbol{A} \in \mathbb{R}^{m \times n}$ with $\operatorname{rank}(\boldsymbol{A}) = r$
+and singular value decomposition
+\[
+\boldsymbol{A} = \boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T
+= \sum_{i=1}^{r} \sigma_i \,\boldsymbol{u}_i \boldsymbol{v}_i^T,
+\]
+where $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r > 0$.
+For any $k \leq r$, define
+\[
+\boldsymbol{A}_k = \sum_{i=1}^{k} \sigma_i \,\boldsymbol{u}_i \boldsymbol{v}_i^T
+= \boldsymbol{U}_k \boldsymbol{\Sigma}_k \boldsymbol{V}_k^T,
+\]
+where $\boldsymbol{U}_k$, $\boldsymbol{\Sigma}_k$, $\boldsymbol{V}_k$ contain only
+the first $k$ columns/entries. Then $\boldsymbol{A}_k$ solves
+\[
+\min_{\boldsymbol{B}:\;\operatorname{rank}(\boldsymbol{B})\leq k}
+\|\boldsymbol{A} - \boldsymbol{B}\|_F^2,
+\]
+and the minimum value is $\sum_{i=k+1}^{r}\sigma_i^2$.
+
+\subsection*{1.2 Proof}
+
+The proof uses the \emph{unitary invariance} of the Frobenius norm:
+for any orthogonal $\boldsymbol{P} \in \mathbb{R}^{m \times m}$ and
+$\boldsymbol{Q} \in \mathbb{R}^{n \times n}$,
+\[
+\|\boldsymbol{P}\boldsymbol{M}\boldsymbol{Q}\|_F = \|\boldsymbol{M}\|_F.
+\]
+
+\paragraph{Step 1: Reduction via unitary invariance.}
+Let $\boldsymbol{B}$ be any $m \times n$ matrix with $\operatorname{rank}(\boldsymbol{B}) \leq k$.
+Since $\boldsymbol{A} = \boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T$, we write
+\[
+\|\boldsymbol{A} - \boldsymbol{B}\|_F
+= \|\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T - \boldsymbol{B}\|_F
+= \|\boldsymbol{U}^T(\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^T - \boldsymbol{B})\boldsymbol{V}\|_F
+= \|\boldsymbol{\Sigma} - \boldsymbol{U}^T\boldsymbol{B}\boldsymbol{V}\|_F.
+\]
+Define $\boldsymbol{N} := \boldsymbol{U}^T \boldsymbol{B}\boldsymbol{V}$.
+Since $\boldsymbol{U}$ and $\boldsymbol{V}$ are orthogonal, $\operatorname{rank}(\boldsymbol{N}) = \operatorname{rank}(\boldsymbol{B}) \leq k$.
+The problem reduces to
+\[
+\min_{\boldsymbol{N}:\;\operatorname{rank}(\boldsymbol{N})\leq k}
+\|\boldsymbol{\Sigma} - \boldsymbol{N}\|_F^2.
+\]
+
+\paragraph{Step 2: Expand the Frobenius norm.}
+Since $\boldsymbol{\Sigma}$ is an $m \times n$ matrix with $\Sigma_{ii} = \sigma_i$ for $i = 1,\dots,r$ and all other entries zero, we have
+\begin{align}
+\|\boldsymbol{\Sigma} - \boldsymbol{N}\|_F^2
+&= \sum_{i=1}^{r}(\sigma_i - N_{ii})^2
+ + \sum_{i=r+1}^{\min(m,n)} N_{ii}^2
+ + \sum_{i \neq j} N_{ij}^2. \label{eq:expand}
+\end{align}
+Each of the three terms is a sum of squared real numbers and hence non-negative.
+
+\paragraph{Step 3: Lower bound via diagonal restriction.}
+Any $m \times n$ matrix $\boldsymbol{N}$ of rank at most $k$ has at most $k$ non-zero rows
+(or more precisely, its diagonal can have at most $k$ non-zero entries if we want to simultaneously
+zero out all off-diagonal terms). Observe:
+\begin{itemize}
+    \item The third term $\sum_{i\neq j}N_{ij}^2 \geq 0$ is minimised when $N_{ij}=0$ for all $i\neq j$
+          (i.e., $\boldsymbol{N}$ is diagonal).
+    \item The second term $\sum_{i=r+1}^{\min(m,n)} N_{ii}^2 \geq 0$ is minimised when $N_{ii}=0$ for $i > r$.
+    \item Among diagonal $\boldsymbol{N}$ with rank $\leq k$, at most $k$ diagonal entries can be non-zero.
+\end{itemize}
+So the problem reduces to choosing at most $k$ of the indices $\{1,\dots,r\}$ at which to
+set $N_{ii} = \sigma_i$, with $N_{ii} = 0$ at all remaining indices.
+
+\paragraph{Step 4: Optimal index selection.}
+Setting the off-diagonal terms and the terms for $i > r$ to zero, we need to minimise
+\[
+\sum_{i=1}^{r}(\sigma_i - N_{ii})^2
+\quad\text{subject to at most $k$ of the $N_{ii}$ being nonzero and each }\leq \sigma_i.
+\]
+For a given index $i$ where we \emph{do} set $N_{ii} \neq 0$, the optimal choice is $N_{ii} = \sigma_i$ (reducing that squared term to zero).
+For indices where $N_{ii} = 0$, the contribution is $\sigma_i^2$.
+To minimise the total, we should zero out the $k$ \emph{largest} squared terms, i.e., set $N_{ii} = \sigma_i$ for $i = 1, 2, \dots, k$ (since $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r$).
+
+\paragraph{Step 5: Conclude.}
+The optimal $\boldsymbol{N}^*$ is the diagonal matrix with entries
+$N^*_{ii} = \sigma_i$ for $i=1,\dots,k$ and $N^*_{ii}=0$ otherwise.
+Mapping back: $\boldsymbol{B}^* = \boldsymbol{U}\boldsymbol{N}^*\boldsymbol{V}^T = \sum_{i=1}^k \sigma_i\,\boldsymbol{u}_i\boldsymbol{v}_i^T = \boldsymbol{A}_k$.
+
+The minimum approximation error is
+\[
+\|\boldsymbol{A} - \boldsymbol{A}_k\|_F^2
+= \sum_{i=k+1}^{r}\sigma_i^2.
+\]
+
+\hfill$\blacksquare$
+
+\subsection*{1.3 Remarks}
+
+\begin{enumerate}
+\item The elegance of this proof lies in the fact that unitary invariance of the Frobenius norm
+completely decouples the optimisation into independent scalar problems on each entry
+of the rotated matrix $\boldsymbol{N}$.
+
+\item The same argument extends to the operator (spectral) norm:
+$\min_{\operatorname{rank}(\boldsymbol{B})\leq k}\|\boldsymbol{A}-\boldsymbol{B}\| = \sigma_{k+1}$.
+In that case, one uses the fact that the operator norm of $\boldsymbol{\Sigma}-\boldsymbol{N}$
+is at least the absolute value of its largest diagonal entry that is not ``captured'' by $\boldsymbol{N}$.
+
+\item The Eckart-Young theorem forms the theoretical foundation for PCA, low-rank matrix
+completion, and many dimensionality reduction techniques.
+\end{enumerate}
+
+\newpage
 %======================================================================
 \section*{Question 4: LASSO Variant --- The Square-Root LASSO}
 %======================================================================
