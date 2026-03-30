@@ -6,7 +6,7 @@
 \usepackage{graphicx}
 
 \title{Assignment 4: CS 754, Advanced Image Processing\\
-\large Solutions to Questions 1, 4, and 5}
+\large Solutions to Questions 1, 2, 4, and 5}
 \author{}
 \date{}
 
@@ -130,6 +130,236 @@ is at least the absolute value of its largest diagonal entry that is not ``captu
 \item The Eckart-Young theorem forms the theoretical foundation for PCA, low-rank matrix
 completion, and many dimensionality reduction techniques.
 \end{enumerate}
+
+\newpage
+%======================================================================
+\section*{Question 2: PCA Derivation for Two Directions}
+%======================================================================
+
+We are given data $\boldsymbol{x}_1,\dots,\boldsymbol{x}_n \in \mathbb{R}^d$ with sample mean
+$\bar{\boldsymbol{x}} = \frac{1}{n}\sum_{i=1}^n \boldsymbol{x}_i$ and centered data
+$\boldsymbol{y}_i = \boldsymbol{x}_i - \bar{\boldsymbol{x}}$.
+We seek an orthonormal matrix $\boldsymbol{U} = [\boldsymbol{u}_1\;\boldsymbol{u}_2] \in \mathbb{R}^{d \times 2}$
+with $\boldsymbol{U}^T\boldsymbol{U} = \boldsymbol{I}_2$ that minimises the total squared
+reconstruction error
+\[
+J(\boldsymbol{U})
+= \sum_{i=1}^n \|\boldsymbol{y}_i - \hat{\boldsymbol{y}}_i\|^2,
+\quad\text{where}\quad
+\hat{\boldsymbol{y}}_i = \boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}_i.
+\]
+
+\subsection*{2.1 Reformulating the Objective}
+
+Using the orthogonality of projection and its complement, we expand:
+\begin{align}
+\|\boldsymbol{y}_i - \boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}_i\|^2
+&= \|(\boldsymbol{I} - \boldsymbol{U}\boldsymbol{U}^T)\boldsymbol{y}_i\|^2 \notag\\
+&= \boldsymbol{y}_i^T(\boldsymbol{I} - \boldsymbol{U}\boldsymbol{U}^T)^T
+   (\boldsymbol{I} - \boldsymbol{U}\boldsymbol{U}^T)\boldsymbol{y}_i \notag\\
+&= \boldsymbol{y}_i^T(\boldsymbol{I} - \boldsymbol{U}\boldsymbol{U}^T)\boldsymbol{y}_i
+\label{eq:idempotent}
+\end{align}
+since $\boldsymbol{I} - \boldsymbol{U}\boldsymbol{U}^T$ is an idempotent (projection) matrix
+when $\boldsymbol{U}^T\boldsymbol{U} = \boldsymbol{I}_2$.
+
+Summing over all data points:
+\begin{align}
+J(\boldsymbol{U})
+&= \sum_{i=1}^n \boldsymbol{y}_i^T\boldsymbol{y}_i
+ - \sum_{i=1}^n \boldsymbol{y}_i^T \boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}_i \notag\\
+&= \underbrace{\sum_{i=1}^n \|\boldsymbol{y}_i\|^2}_{\text{constant}}
+ - \sum_{i=1}^n \|\boldsymbol{U}^T\boldsymbol{y}_i\|^2.
+\end{align}
+
+Since the first term is a constant (independent of $\boldsymbol{U}$), minimising $J$ is
+equivalent to \textbf{maximising}
+\[
+F(\boldsymbol{U}) := \sum_{i=1}^n \|\boldsymbol{U}^T\boldsymbol{y}_i\|^2.
+\]
+
+\subsection*{2.2 Expressing in Terms of the Covariance Matrix}
+
+Define the $d \times d$ sample covariance matrix (up to scaling by $1/n$):
+\[
+\boldsymbol{S} := \sum_{i=1}^n \boldsymbol{y}_i\boldsymbol{y}_i^T.
+\]
+Now expand the objective. Since $\boldsymbol{U}^T\boldsymbol{y}_i \in \mathbb{R}^2$, we have
+$\|\boldsymbol{U}^T\boldsymbol{y}_i\|^2 = \boldsymbol{y}_i^T\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}_i$, so
+\begin{align}
+F(\boldsymbol{U})
+&= \sum_{i=1}^n \boldsymbol{y}_i^T\boldsymbol{U}\boldsymbol{U}^T\boldsymbol{y}_i
+= \operatorname{tr}\!\left(\boldsymbol{U}^T\!\left(\sum_{i=1}^n\boldsymbol{y}_i\boldsymbol{y}_i^T\right)\!\boldsymbol{U}\right)
+= \operatorname{tr}(\boldsymbol{U}^T \boldsymbol{S}\,\boldsymbol{U}).
+\end{align}
+
+Here we used the trace identity $\boldsymbol{a}^T\boldsymbol{M}\boldsymbol{a} = \operatorname{tr}(\boldsymbol{a}\boldsymbol{a}^T\boldsymbol{M})$
+and linearity of trace.
+
+Writing $\boldsymbol{U} = [\boldsymbol{u}_1\;\boldsymbol{u}_2]$:
+\[
+\operatorname{tr}(\boldsymbol{U}^T\boldsymbol{S}\,\boldsymbol{U})
+= \boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1
++ \boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_2.
+\]
+
+\subsection*{2.3 Constrained Optimisation via Lagrange Multipliers}
+
+We wish to maximise
+\[
+F(\boldsymbol{u}_1,\boldsymbol{u}_2)
+= \boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1
++ \boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_2
+\]
+subject to the three orthonormality constraints
+$\boldsymbol{U}^T\boldsymbol{U} = \boldsymbol{I}_2$, i.e.,
+\[
+\boldsymbol{u}_1^T\boldsymbol{u}_1 = 1,\qquad
+\boldsymbol{u}_2^T\boldsymbol{u}_2 = 1,\qquad
+\boldsymbol{u}_1^T\boldsymbol{u}_2 = 0.
+\]
+
+Form the Lagrangian with multipliers $\lambda_1, \lambda_2$ (scalars) and $\mu$ (scalar):
+\[
+\mathcal{L} = \boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1
++ \boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_2
+- \lambda_1(\boldsymbol{u}_1^T\boldsymbol{u}_1 - 1)
+- \lambda_2(\boldsymbol{u}_2^T\boldsymbol{u}_2 - 1)
+- \mu\,\boldsymbol{u}_1^T\boldsymbol{u}_2.
+\]
+
+\paragraph{Differentiate with respect to $\boldsymbol{u}_1$:}
+\[
+\frac{\partial\mathcal{L}}{\partial\boldsymbol{u}_1}
+= 2\boldsymbol{S}\,\boldsymbol{u}_1 - 2\lambda_1\boldsymbol{u}_1 - \mu\,\boldsymbol{u}_2
+= \boldsymbol{0}.
+\tag{I}
+\]
+
+\paragraph{Differentiate with respect to $\boldsymbol{u}_2$:}
+\[
+\frac{\partial\mathcal{L}}{\partial\boldsymbol{u}_2}
+= 2\boldsymbol{S}\,\boldsymbol{u}_2 - 2\lambda_2\boldsymbol{u}_2 - \mu\,\boldsymbol{u}_1
+= \boldsymbol{0}.
+\tag{II}
+\]
+
+\subsection*{2.4 Showing $\mu = 0$ (the Cross-Multiplier Vanishes)}
+
+Left-multiply equation (I) by $\boldsymbol{u}_2^T$:
+\[
+2\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1
+- 2\lambda_1\underbrace{\boldsymbol{u}_2^T\boldsymbol{u}_1}_{=\,0}
+- \mu\underbrace{\boldsymbol{u}_2^T\boldsymbol{u}_2}_{=\,1} = 0
+\quad\Longrightarrow\quad
+2\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \mu.
+\tag{III}
+\]
+
+Left-multiply equation (II) by $\boldsymbol{u}_1^T$:
+\[
+2\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_2
+- 2\lambda_2\underbrace{\boldsymbol{u}_1^T\boldsymbol{u}_2}_{=\,0}
+- \mu\underbrace{\boldsymbol{u}_1^T\boldsymbol{u}_1}_{=\,1} = 0
+\quad\Longrightarrow\quad
+2\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_2 = \mu.
+\tag{IV}
+\]
+
+Since $\boldsymbol{S}$ is symmetric, $\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_2$.
+Equations (III) and (IV) are consistent. Now left-multiply (I) by $\boldsymbol{u}_1^T$:
+\[
+2\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1
+- 2\lambda_1 - \mu\underbrace{\boldsymbol{u}_1^T\boldsymbol{u}_2}_{=\,0} = 0
+\quad\Longrightarrow\quad
+\boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1.
+\]
+
+Similarly, from (II): $\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_2 = \lambda_2$.
+
+Now, from (I): $\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1\boldsymbol{u}_1 + \frac{\mu}{2}\boldsymbol{u}_2$.
+Left-multiply by $\boldsymbol{u}_2^T$:
+$\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \frac{\mu}{2}$.
+But from (III): $\boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_1 = \frac{\mu}{2}$.
+This is consistent.
+
+From (II): $\boldsymbol{S}\,\boldsymbol{u}_2 = \lambda_2\boldsymbol{u}_2 + \frac{\mu}{2}\boldsymbol{u}_1$.
+If $\lambda_1 \neq \lambda_2$ (the generic case), left-multiply (I) by $\boldsymbol{u}_2^T$ and (II) by $\boldsymbol{u}_1^T$:
+\begin{align}
+2\boldsymbol{u}_2^T\boldsymbol{S}\boldsymbol{u}_1 &= \mu \tag{from III}\\
+2\boldsymbol{u}_1^T\boldsymbol{S}\boldsymbol{u}_2 &= \mu \tag{from IV}
+\end{align}
+Substitute from (I): $\boldsymbol{S}\boldsymbol{u}_1 = \lambda_1\boldsymbol{u}_1 + \frac{\mu}{2}\boldsymbol{u}_2$
+into (II): $2(\lambda_1\boldsymbol{u}_1 + \frac{\mu}{2}\boldsymbol{u}_2)^T\boldsymbol{u}_2 = ... $
+
+More directly: assume $\mu \neq 0$.
+From (I) and (II):
+\begin{align}
+\boldsymbol{S}\boldsymbol{u}_1 &= \lambda_1\boldsymbol{u}_1 + \tfrac{\mu}{2}\boldsymbol{u}_2, \label{eq:su1}\\
+\boldsymbol{S}\boldsymbol{u}_2 &= \lambda_2\boldsymbol{u}_2 + \tfrac{\mu}{2}\boldsymbol{u}_1. \label{eq:su2}
+\end{align}
+Multiply \eqref{eq:su1} by $\boldsymbol{u}_2^T$ on the left: $\boldsymbol{u}_2^T\boldsymbol{S}\boldsymbol{u}_1 = \tfrac{\mu}{2}$.
+Multiply \eqref{eq:su2} by $\boldsymbol{u}_1^T$ on the left: $\boldsymbol{u}_1^T\boldsymbol{S}\boldsymbol{u}_2 = \tfrac{\mu}{2}$
+(consistent, since $\boldsymbol{S} = \boldsymbol{S}^T$).
+
+Apply $\boldsymbol{S}$ to \eqref{eq:su1}:
+$\boldsymbol{S}^2\boldsymbol{u}_1 = \lambda_1\boldsymbol{S}\boldsymbol{u}_1 + \tfrac{\mu}{2}\boldsymbol{S}\boldsymbol{u}_2
+= \lambda_1(\lambda_1\boldsymbol{u}_1 + \tfrac{\mu}{2}\boldsymbol{u}_2) + \tfrac{\mu}{2}(\lambda_2\boldsymbol{u}_2 + \tfrac{\mu}{2}\boldsymbol{u}_1)$,
+
+giving $\boldsymbol{S}^2\boldsymbol{u}_1 = (\lambda_1^2 + \tfrac{\mu^2}{4})\boldsymbol{u}_1 + \tfrac{\mu}{2}(\lambda_1+\lambda_2)\boldsymbol{u}_2$.
+
+This means $\boldsymbol{u}_1$ and $\boldsymbol{u}_2$ span a 2-dimensional invariant subspace of $\boldsymbol{S}$.
+In that subspace, $\boldsymbol{S}$ has representation
+$\begin{pmatrix}\lambda_1 & \mu/2 \\ \mu/2 & \lambda_2\end{pmatrix}$.
+We can always rotate within this subspace to diagonalise this $2\times 2$ matrix, yielding new orthonormal
+$\boldsymbol{u}_1', \boldsymbol{u}_2'$ that \emph{are} eigenvectors of $\boldsymbol{S}$
+with eigenvalues $\tilde\lambda_1, \tilde\lambda_2$, and the same column space
+$\operatorname{span}(\boldsymbol{u}_1,\boldsymbol{u}_2) = \operatorname{span}(\boldsymbol{u}_1',\boldsymbol{u}_2')$.
+Since $J$ depends only on the column space of $\boldsymbol{U}$ (because $\boldsymbol{U}\boldsymbol{U}^T$ is the
+projection onto $\operatorname{col}(\boldsymbol{U})$), we may \textbf{without loss of generality} take
+$\mu = 0$. Then equations (I) and (II) become:
+\[
+\boxed{\boldsymbol{S}\,\boldsymbol{u}_1 = \lambda_1\,\boldsymbol{u}_1
+\qquad\text{and}\qquad
+\boldsymbol{S}\,\boldsymbol{u}_2 = \lambda_2\,\boldsymbol{u}_2.}
+\]
+That is, $\boldsymbol{u}_1$ and $\boldsymbol{u}_2$ are \textbf{eigenvectors of $\boldsymbol{S}$}
+with eigenvalues $\lambda_1$ and $\lambda_2$ respectively.
+
+\subsection*{2.5 Identifying the Optimal Eigenvectors}
+
+At the optimal solution:
+\[
+F^* = \operatorname{tr}(\boldsymbol{U}^T\boldsymbol{S}\,\boldsymbol{U})
+= \boldsymbol{u}_1^T\boldsymbol{S}\,\boldsymbol{u}_1 + \boldsymbol{u}_2^T\boldsymbol{S}\,\boldsymbol{u}_2
+= \lambda_1 + \lambda_2.
+\]
+To maximise $F^* = \lambda_1 + \lambda_2$, we must choose the eigenvectors corresponding
+to the two \textbf{largest} eigenvalues of $\boldsymbol{S}$.
+
+Let $\lambda^{(1)} \geq \lambda^{(2)} \geq \cdots \geq \lambda^{(d)} \geq 0$ be the eigenvalues
+of $\boldsymbol{S}$ (all non-negative since $\boldsymbol{S}$ is positive semidefinite).
+The optimal choice is:
+\[
+\boldsymbol{u}_1^* = \boldsymbol{e}_1\quad(\text{eigenvector for }\lambda^{(1)}),\qquad
+\boldsymbol{u}_2^* = \boldsymbol{e}_2\quad(\text{eigenvector for }\lambda^{(2)}).
+\]
+
+\subsection*{2.6 Final Result}
+
+The minimum reconstruction error is
+\[
+J^* = \sum_{i=1}^n \|\boldsymbol{y}_i\|^2 - (\lambda^{(1)} + \lambda^{(2)})
+= \operatorname{tr}(\boldsymbol{S}) - \lambda^{(1)} - \lambda^{(2)}
+= \sum_{j=3}^{d}\lambda^{(j)}.
+\]
+
+\textbf{Conclusion:} The optimal 2-dimensional PCA subspace is spanned by the eigenvectors
+of the sample scatter matrix $\boldsymbol{S} = \sum_{i=1}^n \boldsymbol{y}_i\boldsymbol{y}_i^T$
+corresponding to its two largest eigenvalues. This naturally generalises the 1-direction
+PCA derivation done in class: for one direction, the optimal $\boldsymbol{u}_1$ is the top
+eigenvector; for two mutually perpendicular directions, the optimal
+$\boldsymbol{U} = [\boldsymbol{u}_1\;\boldsymbol{u}_2]$ consists of the top two eigenvectors.
 
 \newpage
 %======================================================================
